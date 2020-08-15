@@ -1,0 +1,24 @@
+name: golangci-lint
+on:
+  pull_request:
+    branches:
+      - master
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Run linter for bot
+        uses: golangci/golangci-lint-action@v1
+        with:
+          version: v1.30
+          working-directory: ./bot
+
+      - name: Run linter for client
+        uses: golangci/golangci-lint-action@v1
+        with:
+          version: v1.30
+          working-directory: ./client
