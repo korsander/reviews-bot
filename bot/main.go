@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/joho/godotenv"
-	"github.com/korsander/reviews-bot/rtm"
+	rtm "github.com/korsander/reviews-bot/rtm"
 	"github.com/slack-go/slack"
 	"log"
 	"os"
