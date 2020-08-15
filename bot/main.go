@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
-	rtm "github.com/korsander/reviews-bot/bot/rtm"
+	"github.com/korsander/reviews-bot/bot/events"
 	"github.com/korsander/reviews-bot/lib"
 	"github.com/slack-go/slack"
 	"log"
@@ -27,41 +27,45 @@ func loadEnvironmentVars() {
 
 func startListenSlackMessages() {
 	slackToken := os.Getenv("SLACK_TOKEN")
+	signingSecret := os.Getenv("SIGNING_SECRET")
 	api := slack.New(
 		slackToken,
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
-	go func() {
-		rtm.StartMessagesHandle(api)
-	}()
+
+	go events.StartEventsHandle(api, signingSecret)
 }
 
 func handleCISocket() {
-	http.HandleFunc(lib.CISocketPath, echo)
+	http.HandleFunc(lib.CISocketPath, handleCiSocket)
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }
 
 var upgrader = websocket.Upgrader{}
+var connection *websocket.Conn
 
-func echo(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
+func handleCiSocket(w http.ResponseWriter, r *http.Request) {
+	var err error
+	connection, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
+	defer connection.Close()
 	for {
-		mt, message, err := c.ReadMessage()
+		_, message, err := connection.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
 		}
 		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}
+	}
+}
+
+func SendCommandToCI(command string) {
+	err := connection.WriteMessage(websocket.TextMessage, []byte(command))
+	if err != nil {
+		log.Println("error sending:", err)
 	}
 }

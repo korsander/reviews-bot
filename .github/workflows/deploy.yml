@@ -47,7 +47,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "bot"
+          source: "bot/bot"
           target: "/opt"
 
       - name: multiple command
@@ -58,6 +58,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /opt
+            cd /opt/bot
             chmod +x bot
             service bot restart

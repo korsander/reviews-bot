@@ -43,7 +43,6 @@ func main() {
 		case <-ticker.C:
 			if connection == nil {
 				tryConnect(u)
-				continue
 			}
 		case <-interrupt:
 			log.Println("interrupt")
