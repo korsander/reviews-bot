@@ -27,25 +27,26 @@ func loadEnvironmentVars() {
 
 func startListenSlackMessages() {
 	slackToken := os.Getenv("SLACK_TOKEN")
-	signingSecret := os.Getenv("SIGNING_SECRET")
+
 	api := slack.New(
 		slackToken,
 		slack.OptionDebug(true),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 
-	go events.StartEventsHandle(api, signingSecret)
+	go events.StartEventsHandle(api)
 }
 
 func handleCISocket() {
 	http.HandleFunc(lib.CISocketPath, handleCiSocket)
-	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 var upgrader = websocket.Upgrader{}
 var connection *websocket.Conn
 
 func handleCiSocket(w http.ResponseWriter, r *http.Request) {
+	log.Println("\n[INFO] Listen for ci")
 	var err error
 	connection, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
