@@ -2,30 +2,40 @@ package main
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
+	"github.com/gorilla/mux"
+	"github.com/korsander/reviews-bot/bot/cfg"
 	"github.com/korsander/reviews-bot/bot/ci"
-	"github.com/korsander/reviews-bot/bot/events"
+	"github.com/korsander/reviews-bot/bot/service"
 	"github.com/slack-go/slack"
-	"os"
+	"net/http"
 )
 
 func main() {
-	loadEnvironmentVars()
-	startListenSlackMessages()
+	config := cfg.LoadConfig()
+	api := slack.New(config.SlackToken)
+
+	startSlackService(config, api)
+
 	ci.HandleCISocket()
 }
 
-func loadEnvironmentVars() {
-	e := godotenv.Load() //Загрузить файл .env
-	if e != nil {
-		fmt.Print(e)
-	}
-}
+func startSlackService(config cfg.Config, api *slack.Client) {
+	router := mux.NewRouter()
+	slackService := service.NewSlackService(
+		config,
+		api,
+	)
 
-func startListenSlackMessages() {
-	slackToken := os.Getenv("SLACK_TOKEN")
+	slackService.Mount(router)
 
-	api := slack.New(slackToken)
-
-	go events.StartEventsHandle(api)
+	go func() {
+		if err := http.ListenAndServeTLS(
+			config.EventsAddr,
+			config.CertChain,
+			config.CertPrivate,
+			router,
+		); err != nil {
+			fmt.Printf("Server stopped immediately: %v", err)
+		}
+	}()
 }
