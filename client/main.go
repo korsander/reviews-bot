@@ -27,7 +27,7 @@ func main() {
 
 	serverHost := os.Getenv("BOT_HOST")
 
-	u = url.URL{Scheme: "ws", Host: serverHost, Path: lib.CISocketPath}
+	u = url.URL{Scheme: "wss", Host: serverHost, Path: lib.CISocketPath}
 	log.Printf("connecting to %s", u.String())
 
 	tryConnect(u)

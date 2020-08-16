@@ -20,7 +20,12 @@ func StartEventsHandle(api *slack.Client) {
 	http.HandleFunc("/slack/events", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("incoming request")
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(r.Body)
+		_, err := buf.ReadFrom(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Printf("error parse: %s\n", err)
+			return
+		}
 		body := buf.String()
 
 		eventsAPIEvent, err := slackevents.ParseEvent(
