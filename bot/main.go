@@ -6,6 +6,7 @@ import (
 	"github.com/korsander/reviews-bot/bot/cfg"
 	"github.com/korsander/reviews-bot/bot/ci"
 	"github.com/korsander/reviews-bot/bot/service"
+	"github.com/korsander/reviews-bot/bot/service/handlers"
 	"github.com/slack-go/slack"
 	"net/http"
 )
@@ -27,6 +28,7 @@ func startSlackService(config cfg.Config, api *slack.Client) {
 	)
 
 	slackService.Mount(router)
+	slackService.WithActionHandler(service.BuildApp, handlers.BuildActionHandler(api))
 
 	go func() {
 		if err := http.ListenAndServeTLS(

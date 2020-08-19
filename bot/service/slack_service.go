@@ -52,7 +52,7 @@ func (s *SlackService) Mount(router *mux.Router) {
 	router.HandleFunc("/slack/interactive-endpoint", s.HandleInteractivity)
 }
 
-func WithActionHandler(actionType ActionType, handler InteractivityHandler) func(handlerMap HandlerMap) {
+func (s *SlackService) WithActionHandler(actionType ActionType, handler InteractivityHandler) func(handlerMap HandlerMap) {
 	return func(handlerMap HandlerMap) {
 		handlerMap[actionType] = handler
 	}
@@ -66,7 +66,14 @@ func (s *SlackService) HandleInteractivity(rw http.ResponseWriter, r *http.Reque
 	}
 
 	for _, action := range payload.ActionCallback.BlockActions {
-		err := s.handlerMap[ActionType(action.ActionID)](payload, action)
+		handler := s.handlerMap[ActionType(action.ActionID)]
+
+		if handler == nil {
+			fmt.Printf("No handler found received action: %v", action.ActionID)
+			continue
+		}
+
+		err := handler(payload, action)
 		if err != nil {
 			fmt.Printf("No handler found received action: %v", err)
 		}

@@ -40,7 +40,7 @@ func getSelectPlatformMsgOptions() slack.MsgOption {
 	actions := slack.NewActionBlock(
 		"test",
 		slack.NewButtonBlockElement(
-			"test1",
+			"build_app",
 			"android",
 			slack.NewTextBlockObject("plain_text", "Android", false, false),
 		),
